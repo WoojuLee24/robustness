@@ -12,22 +12,29 @@ import cox
 import cox.utils
 import cox.store
 
-try:
-    from .model_utils import make_and_restore_model
-    from .datasets import DATASETS
-    from .train import train_model, eval_model
-    from .tools import constants, helpers
-    from . import defaults, __version__
-    from .defaults import check_and_fill_args
-except:
-    raise ValueError("Make sure to run with python -m (see README.md)")
+# try:
+#     from .model_utils import make_and_restore_model
+#     from .datasets import DATASETS
+#     from .train import train_model, eval_model
+#     from .tools import constants, helpers
+#     from . import defaults, __version__
+#     from .defaults import check_and_fill_args
+# except:
+#     raise ValueError("Make sure to run with python -m (see README.md)")
 
+from robustness.model_utils import make_and_restore_model
+from robustness.datasets import DATASETS
+from robustness.train import train_model, eval_model
+from robustness.tools import constants, helpers
+from robustness import defaults, __version__
+from robustness.defaults import check_and_fill_args
 
 parser = ArgumentParser()
 parser = defaults.add_args_to_parser(defaults.CONFIG_ARGS, parser)
 parser = defaults.add_args_to_parser(defaults.MODEL_LOADER_ARGS, parser)
 parser = defaults.add_args_to_parser(defaults.TRAINING_ARGS, parser)
 parser = defaults.add_args_to_parser(defaults.PGD_ARGS, parser)
+
 
 def main(args, store=None):
     '''Given arguments from `setup_args` and a store from `setup_store`,
