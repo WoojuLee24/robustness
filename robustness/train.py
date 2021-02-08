@@ -298,7 +298,7 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
 
     # Put the model into parallel mode
     assert not hasattr(model, "module"), "model is already in DataParallel."
-    model = ch.nn.DataParallel(model, device_ids=dp_device_ids).cuda()
+    model = ch.nn.DataParallel(model, device_ids=[dp_device_ids]).cuda()
 
     best_prec1, start_epoch = (0, 0)
     if checkpoint:
