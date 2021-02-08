@@ -43,7 +43,7 @@ def main(args, store=None):
     '''
     # gpu device
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu-devices
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_devices
     cur_device = ch.cuda.current_device()
 
     # MAKE DATASET AND LOADERS
