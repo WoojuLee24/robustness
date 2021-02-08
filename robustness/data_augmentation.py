@@ -54,6 +54,17 @@ Standard training data augmentation for ImageNet-scale datasets: Random crop,
 Random flip, Color Jitter, and Lighting Transform (see https://git.io/fhBOc)
 """
 
+TRAIN_TRANSFORMS_IMAGENET_DOMAIN = transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+    ])
+
+"""
+Standard training data augmentation for ImageNet Domain Shift
+No Color Jittering
+"""
+
 TEST_TRANSFORMS_IMAGENET = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
@@ -76,6 +87,18 @@ TRAIN_TRANSFORMS_DEFAULT = lambda size: transforms.Compose([
 Generic training data transform, given image side length does random cropping,
 flipping, color jitter, and rotation. Called as, for example,
 :meth:`robustness.data_augmentation.TRAIN_TRANSFORMS_DEFAULT(32)` for CIFAR-10.
+"""
+
+# Data Augmentation defaults for domain
+TRAIN_TRANSFORMS_DEFAULT_DOMAIN = lambda size: transforms.Compose([
+            transforms.RandomCrop(size, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(2),
+            transforms.ToTensor(),
+        ])
+"""
+Generic training data transform for domain
+No Color Jittering
 """
 
 TEST_TRANSFORMS_DEFAULT = lambda size:transforms.Compose([

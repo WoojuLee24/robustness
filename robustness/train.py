@@ -88,7 +88,10 @@ def make_optimizer_and_schedule(args, model, checkpoint, params):
 
     # Make schedule
     schedule = None
-    if args.custom_lr_multiplier == 'cyclic':
+    if args.custom_lr_multiplier == "cosine":
+        schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=0)
+
+    elif args.custom_lr_multiplier == 'cyclic':
         eps = args.epochs
         lr_func = lambda t: np.interp([t], [0, eps*4//15, eps], [0, 1, 0])[0]
         schedule = lr_scheduler.LambdaLR(optimizer, lr_func)
@@ -371,7 +374,9 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
             save_checkpoint(consts.CKPT_NAME_LATEST)
             if is_best: save_checkpoint(consts.CKPT_NAME_BEST)
 
-        if schedule: schedule.step()
+        if schedule:
+            schedule.step()
+            print(schedule.get_lr())
         if has_attr(args, 'epoch_hook'): args.epoch_hook(model, log_info)
 
     return model
