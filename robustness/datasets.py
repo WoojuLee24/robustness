@@ -196,8 +196,10 @@ class ImageNet(DataSet):
             'std': ch.tensor([0.229, 0.224, 0.225]),
             'custom_class': None,
             'label_mapping': None,
-            'transform_train': da.TRAIN_TRANSFORMS_IMAGENET,
-            'transform_test': da.TEST_TRANSFORMS_IMAGENET
+            'transform_train': da.TRAIN_TRANSFORMS_IMAGENET_DOMAIN,
+            'transform_test': da.TEST_TRANSFORMS_IMAGENET,
+            # 'transform_train': da.TRAIN_TRANSFORMS_IMAGENET,
+            # 'transform_test': da.TEST_TRANSFORMS_IMAGENET
         }
         ds_kwargs = self.override_args(ds_kwargs, kwargs)
         super(ImageNet, self).__init__('imagenet', data_path, **ds_kwargs)
@@ -353,7 +355,7 @@ class CIFAR(DataSet):
             'std': ch.tensor([0.2023, 0.1994, 0.2010]),
             'custom_class': datasets.CIFAR10,
             'label_mapping': None, 
-            'transform_train': da.TRAIN_TRANSFORMS_DEFAULT(32),
+            'transform_train': da.TRAIN_TRANSFORMS_DEFAULT_DOMAIN(32),
             'transform_test': da.TEST_TRANSFORMS_DEFAULT(32)
         }
         ds_kwargs = self.override_args(ds_kwargs, kwargs)
