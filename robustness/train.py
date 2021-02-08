@@ -376,7 +376,7 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
 
         if schedule:
             schedule.step()
-            print(schedule.get_lr())
+            print(schedule.get_last_lr())
         if has_attr(args, 'epoch_hook'): args.epoch_hook(model, log_info)
 
     return model
