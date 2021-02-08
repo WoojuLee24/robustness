@@ -116,7 +116,7 @@ MODEL_LOADER_ARGS = [
     ['resume-optimizer', [0, 1], 'whether to also resume optimizers', 0],
     ['data-aug', [0, 1], 'whether to use data augmentation', 1],
     ['mixed-precision', [0, 1], 'whether to use MP training (faster)', 0],
-    ['gpu-devices', str, 'gpu devices', "0"]
+    ['gpu_devices', str, 'gpu devices', "0"]
 ]
 """
 Arguments essential for constructing the model and dataloaders that will be fed
