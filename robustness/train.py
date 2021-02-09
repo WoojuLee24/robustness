@@ -177,6 +177,54 @@ def eval_model(args, model, loader, store):
     if store: store[consts.LOGS_TABLE].append_row(log_info)
     return log_info
 
+
+def eval_corruption_model(args, model, loader, store):
+    """
+    Evaluate a model for standard (and optionally adversarial) accuracy.
+
+    Args:
+        args (object) : A list of arguments---should be a python object
+            implementing ``getattr()`` and ``setattr()``.
+        model (AttackerModel) : model to evaluate
+        loader (iterable) : a dataloader serving `(input, label)` batches from
+            the validation set
+        store (cox.Store) : store for saving results in (via tensorboardX)
+    """
+    check_required_args(args, eval_only=True)
+    start_time = time.time()
+
+    if store is not None:
+        store.add_table(consts.LOGS_TABLE, consts.LOGS_SCHEMA)
+    writer = store.tensorboard if store else None
+
+    assert not hasattr(model, "module"), "model is already in DataParallel."
+    model = ch.nn.DataParallel(model)
+
+    prec1, nat_loss = _model_loop(args, 'val', loader,
+                                        model, None, 0, False, writer)
+
+    adv_prec1, adv_loss = float('nan'), float('nan')
+    if args.adv_eval:
+        args.eps = eval(str(args.eps)) if has_attr(args, 'eps') else None
+        args.attack_lr = eval(str(args.attack_lr)) if has_attr(args, 'attack_lr') else None
+        adv_prec1, adv_loss = _model_loop(args, 'val', loader,
+                                        model, None, 0, True, writer)
+    log_info = {
+        'epoch':0,
+        'nat_prec1':prec1,
+        'adv_prec1':adv_prec1,
+        'nat_loss':nat_loss,
+        'adv_loss':adv_loss,
+        'train_prec1':float('nan'),
+        'train_loss':float('nan'),
+        'time': time.time() - start_time
+    }
+
+    # Log info into the logs table
+    if store: store[consts.LOGS_TABLE].append_row(log_info)
+    return log_info
+
+
 def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
             store=None, update_params=None, disable_no_grad=False):
     """
@@ -479,7 +527,7 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer):
 
         reg_term = 0.0
         if has_attr(args, "regularizer"):
-            reg_term =  args.regularizer(model, inp, target)
+            reg_term = args.regularizer(model, inp, target)
         loss = loss + reg_term
 
         # compute gradient and do SGD step

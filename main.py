@@ -42,9 +42,9 @@ def main(args, store=None):
     argument options.
     '''
     # gpu device
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_devices
-    cur_device = ch.cuda.current_device()
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_devices
+    # cur_device = ch.cuda.current_device()
 
     # MAKE DATASET AND LOADERS
     data_path = os.path.expandvars(args.data)
@@ -59,7 +59,7 @@ def main(args, store=None):
 
     # MAKE MODEL
     model, checkpoint = make_and_restore_model(arch=args.arch,
-            dataset=dataset, resume_path=args.resume)
+            dataset=dataset, resume_path=args.resume, parallel=True)
     if 'module' in dir(model): model = model.module
 
     print(args)
@@ -67,7 +67,7 @@ def main(args, store=None):
         return eval_model(args, model, val_loader, store=store)
 
     if not args.resume_optimizer: checkpoint = None
-    model = train_model(args, model, loaders, store=store, checkpoint=checkpoint, dp_device_ids=[cur_device])
+    model = train_model(args, model, loaders, store=store, checkpoint=checkpoint, dp_device_ids=[0])
     return model
 
 def setup_args(args):
