@@ -101,7 +101,7 @@ class DataSet(object):
                 raise ValueError(f"Argument {k} should have type {req_type}")
         return {**default_args, **kwargs}
 
-    def get_model(self, arch, pretrained):
+    def get_model(self, arch, pretrained, torchvision_resume):
         '''
         Should be overriden by subclasses. Also, you will probably never
         need to call this function, and should instead by using
@@ -204,11 +204,11 @@ class ImageNet(DataSet):
         ds_kwargs = self.override_args(ds_kwargs, kwargs)
         super(ImageNet, self).__init__('imagenet', data_path, **ds_kwargs)
 
-    def get_model(self, arch, pretrained):
+    def get_model(self, arch, pretrained, torchvision_resume=False):
         """
         """
         return imagenet_models.__dict__[arch](num_classes=self.num_classes, 
-                                        pretrained=pretrained)
+                                        pretrained=pretrained, torchvision_resume=torchvision_resume)
 
 class Places365(DataSet):
     '''

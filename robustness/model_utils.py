@@ -81,29 +81,36 @@ def make_and_restore_model(*_, arch, dataset, resume_path=None,
     if (not isinstance(arch, str)) and add_custom_forward:
         arch = DummyModel(arch)
 
-    classifier_model = dataset.get_model(arch, pytorch_pretrained) if \
-                            isinstance(arch, str) else arch
+    if resume_path == "torchvision":
+        classifier_model = dataset.get_model(arch, pytorch_pretrained, torchvision_resume=True) if \
+            isinstance(arch, str) else arch
 
-    model = AttackerModel(classifier_model, dataset)
+        model = AttackerModel(classifier_model, dataset, torchvision_resume=True)
+        checkpoint = None
+    else:
+        classifier_model = dataset.get_model(arch, pytorch_pretrained) if \
+                                isinstance(arch, str) else arch
 
-    # optionally resume from a checkpoint
-    checkpoint = None
-    if resume_path and os.path.isfile(resume_path):
-        print("=> loading checkpoint '{}'".format(resume_path))
-        checkpoint = ch.load(resume_path, pickle_module=dill)
-        
-        # Makes us able to load models saved with legacy versions
-        state_dict_path = 'model'
-        if not ('model' in checkpoint):
-            state_dict_path = 'state_dict'
+        model = AttackerModel(classifier_model, dataset)
 
-        sd = checkpoint[state_dict_path]
-        sd = {k[len('module.'):]:v for k,v in sd.items()}
-        model.load_state_dict(sd)
-        print("=> loaded checkpoint '{}' (epoch {})".format(resume_path, checkpoint['epoch']))
-    elif resume_path:
-        error_msg = "=> no checkpoint found at '{}'".format(resume_path)
-        raise ValueError(error_msg)
+        # optionally resume from a checkpoint
+        checkpoint = None
+        if resume_path and os.path.isfile(resume_path):
+            print("=> loading checkpoint '{}'".format(resume_path))
+            checkpoint = ch.load(resume_path, pickle_module=dill)
+
+            # Makes us able to load models saved with legacy versions
+            state_dict_path = 'model'
+            if not ('model' in checkpoint):
+                state_dict_path = 'state_dict'
+
+            sd = checkpoint[state_dict_path]
+            sd = {k[len('module.'):]:v for k,v in sd.items()}
+            model.load_state_dict(sd)
+            print("=> loaded checkpoint '{}' (epoch {})".format(resume_path, checkpoint['epoch']))
+        elif resume_path:
+            error_msg = "=> no checkpoint found at '{}'".format(resume_path)
+            raise ValueError(error_msg)
 
     if parallel:
         model = ch.nn.DataParallel(model)

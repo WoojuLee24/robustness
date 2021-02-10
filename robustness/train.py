@@ -501,6 +501,12 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer):
                                   **attack_kwargs)
         loss = train_criterion(output, target)
 
+        if args.mixed_loss:
+            clean_output, clean_final_inp = model(inp, target=target, make_adv=False,
+                                                  **attack_kwargs)
+            ######
+            loss = (train_criterion(output, target) + train_criterion(clean_output, target)) / 2
+
         if len(loss.shape) > 0: loss = loss.mean()
 
         model_logits = output[0] if (type(output) is tuple) else output

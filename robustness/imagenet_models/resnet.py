@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torchvision.models as models
 from torch.hub import load_state_dict_from_url
 from ..tools.custom_modules import SequentialWithArgs, FakeReLU
 
@@ -261,7 +262,7 @@ def resnet34(pretrained=False, progress=True, **kwargs):
 
 
 
-def resnet50(pretrained=False, progress=True, **kwargs):
+def resnet50(pretrained=False, progress=True, torchvision_resume=False, **kwargs):
     r"""ResNet-50 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
 
@@ -269,8 +270,12 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], pretrained, progress,
-                   **kwargs)
+    if torchvision_resume:
+        print("torchvision pretrained model")
+        return models.resnet50(pretrained=True)
+    else:
+        return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], pretrained, progress,
+                       **kwargs)
 
 
 

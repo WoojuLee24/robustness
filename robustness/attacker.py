@@ -268,8 +268,9 @@ class AttackerModel(ch.nn.Module):
     For a more comprehensive overview of this class, see 
     :doc:`our detailed walkthrough <../example_usage/input_space_manipulation>`.
     """
-    def __init__(self, model, dataset):
+    def __init__(self, model, dataset, torchvision_resume=False):
         super(AttackerModel, self).__init__()
+        self.torchvision_resume = torchvision_resume
         self.normalizer = helpers.InputNormalize(dataset.mean, dataset.std)
         self.model = model
         self.attacker = Attacker(model, dataset)
@@ -323,7 +324,10 @@ class AttackerModel(ch.nn.Module):
         if no_relu and fake_relu:
             raise ValueError("Options 'no_relu' and 'fake_relu' are exclusive")
 
-        output = self.model(normalized_inp, with_latent=with_latent,
+        if self.torchvision_resume == True:
+            output = self.model(normalized_inp)
+        else:
+            output = self.model(normalized_inp, with_latent=with_latent,
                                 fake_relu=fake_relu, no_relu=no_relu)
         if with_image:
             return (output, inp)
