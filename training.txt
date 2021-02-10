@@ -1,0 +1,92 @@
+imagenet baseline
+
+--adv-train 0 --out-dir /ws/external/checkpoints/imagenet --dataset imagenet --data /ws/data/imagenet --arch resnet50 --batch-size 8 --workers 4 --epochs 100 --lr 0.05 --weight-decay 5e-5 --momentum 0.9 --custom-lr-multiplier cosine
+
+cifar baseline
+
+--adv-train 0 --out-dir /ws/external/checkpoints/cifar --dataset cifar --data /ws/data/cifar --arch resnet50 --batch-size 128 --workers 4 --epochs 200 --lr 0.1 --weight-decay 5e-4 --momentum 0.9 --custom-lr-multiplier cosine
+
+cifar adversarial training
+--adv-train 1 --out-dir /ws/external/checkpoints/cifar_robustness --dataset cifar --data /ws/data/cifar --arch resnet50 --workers 4 --resume /ws/external/checkpoints/cifar/baseline_b128/c7a5eb26-a9fb-475c-83bd-7d19530221c7/checkpoint.pt.best --batch-size 128 --epochs 20 --lr 0.001 --step-lr 10 --step-lr-gamma 0.1 --momentum 0.9 --weight-decay 1e-4 --constraint inf --eps 1.1 --attack-lr 0.2 --attack-steps 6
+
+
+optimizer는 기본 SGD로 설정됨
+
+AdvBN 설정값 + fixed autoaugment
+--adv-train 1
+--out-dir /ws/external/checkpoints/cifar_robustness --dataset cifar --data /ws/data/cifar
+--arch resnet50
+--workers 4 --resume /ws/external/checkpoints/cifar/baseline_b128/c7a5eb26-a9fb-475c-83bd-7d19530221c7/checkpoint.pt.best 
+--batch-size 256 --epochs 20 --lr 0.001 --step-lr 10 --step-lr_gamma 0.1 --momentum 0.9 --weight-decay 1e-4 
+--constraint inf --eps 1.1 --attack-lr 0.2 --attack-steps 6
+
+
+--epochs 20 --lr 0.001 --step-lr 10 --step-lr-gamma 0.1
+torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.step-lr, gamma=args.step-lr-gamaa) 설정
+--resume [checkpoint file 위치]
+checkpoint file 정불러올 때
+--resume_optimizer
+resume과 함께 쓰며, 기존 checkpoint file에서 계속 training할 때
+
+attack_kwargs 설명
+    eps = args.custom_eps_multiplier(epoch) * args.eps \
+            if (is_train and args.custom_eps_multiplier) else args.eps
+    random_restarts = 0 if is_train else args.random_restarts
+
+attack_kwargs = {
+    'constraint': args.constraint, # threat model for adversarial attacks("2"|"inf"|"unconstrained"|"fourier"|:class:`~robustness.attack_steps.AttackerStep`) Default 2
+    'eps': eps, 		# radius for threat model	# Default 3.0
+    'step_size': args.attack_lr, # step size for adversarial attacks.	Default 0.5
+    'iterations': args.attack_steps,	# number of steps for adversarial attacks.(PGD iteration) Default 7	
+    'random_start': args.random_start,	# if True, start the attack with a random step.	# Default 0
+    'custom_loss': adv_criterion,	
+    'random_restarts': random_restarts,	# if True, do many random restarts and take the worst attack (in terms of loss) per input. Default 0
+    'use_best': bool(args.use_best)	# If True, use the best (in terms of loss) iterate of the attack process instead of just the last one.(PGD attack iteration) Default 1. 
+}
+
+
+
+main함수 실행
+make_and_resotre_model
+AttackerModel가 model을 wrap
+Attacker가 model을 wrap
+
+
+train_model 시행
+  epoch iteration
+    _model_loop 시행
+      if adv:
+        attack_kwargs 설정
+      output, final_inp = model(inp, target=target, make_adv=adv, **attack_kwargs) # model 실행
+
+model 실행시(forward 함수)
+1. AttackerModel에서 forward: eval 모드에서 adv example 만든 다음 model에 input을 넘긴다. 그리고 adv example에 대한 prediction을 return. adv가 아니라면 model에 일반 input
+if make_adv:
+    assert target is not None
+    prev_training = bool(self.training)
+    self.eval()
+    adv = self.attacker(inp, target, **attacker_kwargs)
+    if prev_training:
+        self.train()
+
+    inp = adv
+
+normalized_inp = self.normalizer(inp)
+output = self.model(normalized_inp, with_latent=with_latent,
+                                fake_relu=fake_relu, no_relu=no_relu)
+
+1.1. adv = self.attacker(inp, target, **attacker_kwargs)에서 Attacker를 forward(model에 대한 adversarial example를 찾는다.)
+adv_ret = get_adv_examples(x)이 핵심
+
+1.1.1. x = step.random_perturb(x) # Random start (to escape certain types of gradient masking)
+1.1.2. for _ in iterator: # PGD iterates
+1.1.1.1. losses, out = calc_loss(step.to_image(x), target) # loss 연산
+1.1.1.2. # grad 연산
+1.1.1.3.  best_loss, best_x = replace_best(*args) if use_best else (losses, x) # replace_best 저장
+1.1.1.4. x = step.step(x, grad)
+1.1.1.5. x = step.project(x)
+1.1.3 return step.to_image(best_x) # loss 가장 높이는 adv example return
+
+2. loss.backward()로 model training
+
+
