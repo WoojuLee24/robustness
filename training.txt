@@ -3,12 +3,14 @@ imagenet baseline
 --adv-train 0 --out-dir /ws/external/checkpoints/imagenet --dataset imagenet --data /ws/data/imagenet --arch resnet50 --batch-size 8 --workers 4 --epochs 100 --lr 0.05 --weight-decay 5e-5 --momentum 0.9 --custom-lr-multiplier cosine
 
 cifar baseline
-
+baseline_b128, baseline_b256
 --adv-train 0 --out-dir /ws/external/checkpoints/cifar --dataset cifar --data /ws/data/cifar --arch resnet50 --batch-size 128 --workers 4 --epochs 200 --lr 0.1 --weight-decay 5e-4 --momentum 0.9 --custom-lr-multiplier cosine
 
 cifar adversarial training
+baseline_b128_only_adv
 --adv-train 1 --out-dir /ws/external/checkpoints/cifar_robustness --dataset cifar --data /ws/data/cifar --arch resnet50 --workers 4 --resume /ws/external/checkpoints/cifar/baseline_b128/c7a5eb26-a9fb-475c-83bd-7d19530221c7/checkpoint.pt.best --batch-size 128 --epochs 20 --lr 0.001 --step-lr 10 --step-lr-gamma 0.1 --momentum 0.9 --weight-decay 1e-4 --constraint inf --eps 1.1 --attack-lr 0.2 --attack-steps 6
-
+baseline_b128_with_adv
+--adv-train 1 --out-dir /ws/external/checkpoints/cifar_robustness --dataset cifar --data /ws/data/cifar --arch resnet50 --workers 4 --resume /ws/external/checkpoints/cifar/baseline_b128/c7a5eb26-a9fb-475c-83bd-7d19530221c7/checkpoint.pt.best --batch-size 128 --epochs 20 --lr 0.001 --step-lr 10 --step-lr-gamma 0.1 --momentum 0.9 --weight-decay 1e-4 --constraint inf --eps 1.1 --attack-lr 0.2 --attack-steps 6 --mixed-loss 1
 
 optimizer는 기본 SGD로 설정됨
 
